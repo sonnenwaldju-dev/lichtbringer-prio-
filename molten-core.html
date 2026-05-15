@@ -487,7 +487,11 @@
     }
 
     function getOrderedClasses() {
-      return Object.keys(itemsByClass).sort((a, b) => {
+      return classOrder.filter(className => {
+        return itemsByClass[className];
+      }).concat(
+        Object.keys(itemsByClass).filter(className => !classOrder.includes(className))
+      ).sort((a, b) => {
         const aIndex = classOrder.indexOf(a);
         const bIndex = classOrder.indexOf(b);
         if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
@@ -502,11 +506,15 @@
       const classNames = getOrderedClasses();
 
       if (classNames.length === 0) {
-        wrapper.innerHTML = '<h2 class="panel-title">Klasse wählen</h2><div class="empty">Keine P0-Einträge für MC im Sheet gefunden.</div>';
+        wrapper.innerHTML = '<h2 class="panel-title">Klasse wählen</h2>' + classOrder.map(className => `
+          <button class="class-btn ${classCss[className] || ""}">
+            ${className}
+          </button>
+        `).join("");
         return;
       }
 
-      wrapper.innerHTML = '<h2 class="panel-title">Klasse wählen</h2>' + classNames.map(className => `
+      wrapper.innerHTML = '<h2 class="panel-title">Klasse wählen</h2>' + classOrder.map(className => `
         <button class="class-btn ${classCss[className] || ""} ${className === selectedClass ? "active" : ""}" onclick="selectClass('${className}')">
           ${className}
         </button>
