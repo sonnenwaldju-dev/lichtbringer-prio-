@@ -326,11 +326,11 @@
         <a id="wowheadLink" class="wowhead-link" href="#" target="_blank" rel="noopener">Wowhead</a>
       </div>
       <div id="itemContent"></div>
-      <div class="hint">Spieler und Anzahl können im Code im Bereich <strong>p0Data</strong> gepflegt werden. Die Itemlisten pro Klasse liegen im Bereich <strong>itemsByClass</strong>.</div>
+      <div class="hint">Die Itemlisten sind fest hinterlegt. Die P0-Spieler werden automatisch aus dem Google Sheet geladen.</div>
     </section>
   </main>
 
-  <script>const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1t7P5T6t7OCWRY3kGCWIYHWDNXgXmdvpAM1xIj2U4TRw/export?format=csv&gid=0";
+  <script>
     const classes = [
       { key: "Krieger", css: "warrior" },
       { key: "Jäger", css: "hunter" },
@@ -456,20 +456,18 @@
       "Wristguards of Stability": "https://www.wowhead.com/classic/item=19146/wristguards-of-stability"
     };
 
-    const SHEET_CSV_URL = "HIER_DEINEN_GOOGLE_SHEET_CSV_LINK_EINFÜGEN";
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1t7P5T6t7OCWRY3kGCWIYHWDNXgXmdvpAM1xIj2U4TRw/export?format=csv&gid=0";
 
     let p0Data = {};
 
     async function loadP0DataFromSheet() {
       try {
-        if (!SHEET_CSV_URL || SHEET_CSV_URL.includes("HIER_DEINEN")) {
-          console.warn("Kein Google-Sheet-Link eingetragen. P0-Daten bleiben leer.");
-          return;
-        }
-
         const response = await fetch(SHEET_CSV_URL);
         const csvText = await response.text();
         const rows = parseCSV(csvText);
+
+        if (!rows.length) return;
+
         const header = rows.shift().map(h => h.trim().toLowerCase());
 
         const raidIndex = header.indexOf("raid");
@@ -514,18 +512,16 @@
         } else if (char === "," && !insideQuotes) {
           currentRow.push(currentValue);
           currentValue = "";
-        } else if ((char === "
-" || char === "
-") && !insideQuotes) {
+        } else if ((char === "\n" || char === "\r") && !insideQuotes) {
           if (currentValue || currentRow.length) {
             currentRow.push(currentValue);
             rows.push(currentRow);
           }
+
           currentRow = [];
           currentValue = "";
-          if (char === "
-" && nextChar === "
-") i++;
+
+          if (char === "\r" && nextChar === "\n") i++;
         } else {
           currentValue += char;
         }
