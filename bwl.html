@@ -448,7 +448,7 @@
 
     async function loadP0DataFromSheet() {
       try {
-        const response = await fetch(SHEET_CSV_URL);
+        const response = await fetch(SHEET_CSV_URL + "&cachebust=" + Date.now());
         const csvText = await response.text();
         const rows = parseCSV(csvText);
 
@@ -464,12 +464,14 @@
         rows.forEach(row => {
           const raid = raidIndex >= 0 ? row[raidIndex]?.trim() : "BWL";
           const klasse = row[klasseIndex]?.trim();
-          const item = row[itemIndex]?.trim();
+          const itemRaw = row[itemIndex]?.trim();
           const spieler = row[spielerIndex]?.trim();
           const anzahl = row[anzahlIndex]?.trim() || "1";
 
-          if (!klasse || !item || !spieler) return;
+          if (!klasse || !itemRaw || !spieler) return;
           if (raid && raid.toLowerCase() !== "bwl") return;
+
+          const item = findMatchingItemName(itemRaw);
 
           if (!p0Data[item]) p0Data[item] = [];
           p0Data[item].push({ spieler, klasse, anzahl });
